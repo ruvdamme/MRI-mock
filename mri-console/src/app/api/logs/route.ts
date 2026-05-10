@@ -7,9 +7,9 @@ export async function GET() {
     const k8sApi = kc.makeApiClient(k8s.CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod({ namespace: 'default' })
-    const pods = res.items.slice(0, 3)
+    const pods = res.items.filter((pod) => pod.metadata?.name?.includes('service'))
 
-    const logLines: { time: string; level: string; service: string; message: string }[] = []
+    const logLines: { time: string | null; level: string; service: string; message: string }[] = []
 
     for (const pod of pods) {
       const podName = pod.metadata?.name ?? ''
@@ -23,13 +23,22 @@ export async function GET() {
         for (const line of lines) {
           const level = line.includes('error') || line.includes('ERROR') ? 'error'
             : line.includes('warn') || line.includes('WARN') ? 'warn'
-            : 'info'
+              : 'info'
           const service = podName.split('-')[0]
+
+          const timeMatch = line.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+          let time = null
+          let message = line
+          if (timeMatch !== null) {
+            time = new Date(timeMatch[0]).toLocaleTimeString('en-GB', { hour12: false })
+            message = line.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z?\s*/, '').trim()
+          }
+
           logLines.push({
-            time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
+            time,
             level,
             service,
-            message: line.slice(0, 80),
+            message: message.slice(0, 80),
           })
         }
       } catch {
@@ -37,7 +46,14 @@ export async function GET() {
       }
     }
 
-    return Response.json({ logs: logLines.slice(-20) })
+    logLines.sort((a, b) => {
+      if (!a.time && !b.time) return 0
+      if (!a.time) return 1
+      if (!b.time) return -1
+      return b.time.localeCompare(a.time)
+    })
+
+    return Response.json({ logs: logLines.slice(0, 20) })
   } catch {
     // mock logs
     const now = new Date()

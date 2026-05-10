@@ -48,17 +48,9 @@ minikube config set cpus 2
 #### 1.3.1 Build Docker Images
 
 ```
-cd services/auth-service && docker build -t auth-service:latest . && cd ../..
-cd services/api-service && docker build -t api-service:latest . && cd ../..
-cd services/db-service && docker build -t db-service:latest . && cd ../..
-```
-
-By default, Docker build images on the machine, but not inside Minikube. Load them.
-
-```
-minikube image load auth-service:latest
-minikube image load api-service:latest
-minikube image load db-service:latest
+minikube image build -t auth-service:v1 ./services/auth-service
+minikube image build -t api-service:v1 ./services/api-service
+minikube image build -t db-service:v1 ./services/db-service
 ```
 
 `minikube image ls`
@@ -113,9 +105,8 @@ Launch Docker Desktop.
 Here you see an example of how to reload the database service after you made a change.
 
 ```
-cd services/db-service && docker build -t db-service:latest . && cd ../..
-minikube image load db-service:latest
-kubectl rollout restart deployment/db-service
+minikube image build -t db-service:v2 ./services/db-service
+kubectl set image deployment/db-service db-service=db-service:v2
 ```
 
 You can watch the pods live using:

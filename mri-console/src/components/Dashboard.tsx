@@ -149,7 +149,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 gap-4 px-6 lg:grid-cols-3">
         <PodHealth pods={pods} />
         <ResourceUsage resources={resources} />
-        {/* <RecentLogs logs={logs} /> */}
+        <RecentLogs logs={logs} />
       </div>
     </div>
   )

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { FileText } from 'lucide-react'
 
 interface LogEntry {
-  time: string
+  time: string|null
   level: 'info' | 'warn' | 'error'
   service: string
   message: string
@@ -29,14 +29,14 @@ export function RecentLogs({ logs }: RecentLogsProps) {
             <FileText className="size-4 text-muted-foreground" />
             recent logs
           </CardTitle>
-          <Badge variant="outline" className="text-xs">all pods</Badge>
+          <Badge variant="outline" className="text-xs">all services</Badge>
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-auto">
         <div className="space-y-2 font-mono text-xs">
           {logs.map((log, i) => (
             <div key={i} className="flex gap-2 leading-relaxed">
-              <span className="shrink-0 text-muted-foreground/60">{log.time}</span>
+              {log.time && <span className="shrink-0 text-muted-foreground/60">{log.time}</span>}
               <span className={`shrink-0 font-medium ${levelColor[log.level]}`}>{log.level}</span>
               <span className="shrink-0 text-primary/70">{log.service}</span>
               <span className="text-muted-foreground break-all">{log.message}</span>
