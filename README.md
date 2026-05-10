@@ -33,6 +33,14 @@ minikube start --driver=docker --memory=4096 --cpus=2
 minikube addons enable metrics-server
 ```
 
+If you want to persist the minikube config so you can just type `minikube start` (see 1.5 Quick Restart):
+
+```
+minikube config set driver docker
+minikube config set memory 4096
+minikube config set cpus 2
+```
+
 `kubectl get nodes`
 
 ### 1.3 Deploy to Kubernetes
@@ -81,3 +89,9 @@ helm install prometheus prometheus-community/prometheus --set server.service.typ
 `kubectl get pods -l app.kubernetes.io/name=prometheus`
 
 `minikube service prometheus-server --url`
+
+### 1.5 Quick Restart
+
+Launch Docker Desktop.
+
+`minikube start`
