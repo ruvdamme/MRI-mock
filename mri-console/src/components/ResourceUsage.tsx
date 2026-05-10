@@ -10,7 +10,7 @@ interface PodResource {
 }
 
 interface ResourceUsageProps {
-  resources: PodResource[]
+  resources: PodResource[]|null
 }
 
 export function ResourceUsage({ resources }: ResourceUsageProps) {
@@ -22,7 +22,6 @@ export function ResourceUsage({ resources }: ResourceUsageProps) {
             <Cpu className="size-4 text-muted-foreground" />
             resource usage
           </CardTitle>
-          <span className="text-xs text-muted-foreground">cpu & memory per pod</span>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
@@ -35,14 +34,14 @@ export function ResourceUsage({ resources }: ResourceUsageProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
-            {resources.map((r) => (
-              <tr key={r.pod}>
+            {resources?.map((r, i) => (
+              <tr key={i}>
                 <td className="py-2 font-mono text-xs">{r.pod}</td>
                 <td className="py-2 text-right" style={{ color: r.cpuColor }}>{r.cpu}</td>
                 <td className="py-2 text-right text-muted-foreground">{r.mem}</td>
               </tr>
             ))}
-            {resources.length === 0 && (
+            {resources?.length === 0 && (
               <tr>
                 <td colSpan={3} className="py-4 text-center text-muted-foreground">loading…</td>
               </tr>

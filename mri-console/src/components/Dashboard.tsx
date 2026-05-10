@@ -42,8 +42,8 @@ export function Dashboard() {
   const [throughputData, setThroughputData] = useState<DataPoint[]>([])
   const [errorData, setErrorData] = useState<DataPoint[]>([])
   const [dbData, setDbData] = useState<DataPoint[]>([])
-  const [pods, setPods] = useState<Pod[]|null>([])
-  const [resources, setResources] = useState<PodResource[]>([])
+  const [pods, setPods] = useState<Pod[] | null>([])
+  const [resources, setResources] = useState<PodResource[] | null>([])
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [namespace, setNamespace] = useState('default')
   const [cluster, setCluster] = useState('mri-prod-gke')
@@ -90,18 +90,23 @@ export function Dashboard() {
       if (data.namespace) setNamespace(data.namespace)
       if (data.cluster) setCluster(data.cluster)
 
-      // Derive resource usage from pod list (mock CPU/mem since k8s metrics-server not guaranteed)
-      const r: PodResource[] = (data.pods ?? []).map((pod: Pod) => {
-        const cpuPct = Math.floor(Math.random() * 70) + 10
-        const memMi = Math.floor(Math.random() * 400) + 100
-        return {
-          pod: pod.name.split('-').slice(0, 2).join('-'),
-          cpu: `${cpuPct}%`,
-          mem: `${memMi}Mi`,
-          cpuColor: cpuColor(cpuPct),
-        }
-      })
-      setResources(r)
+      if (data.metricsAvailable && data.podMetrics) {
+        const r: PodResource[] = Object.entries(data.podMetrics).map(([name, m]: [string, any]) => {
+          const pod = data.pods.find((p: any) => p.name === name)
+          const cpuVal = parseFloat(m.cpu)
+          const cpuPct = pod?.cpuLimit ? Math.round((cpuVal / pod.cpuLimit) * 100) : null
+
+          return {
+            pod: name,
+            cpu: cpuPct !== null ? `${cpuPct}%` : m.cpu,  // fall back to raw if no limit
+            mem: m.mem,
+            cpuColor: cpuPct !== null ? cpuColor(cpuPct) : '#999999',
+          }
+        })
+        setResources(r)
+      } else {
+        setResources(null)
+      }
     } catch { /* pods optional */ }
   }, [])
 
@@ -132,8 +137,8 @@ export function Dashboard() {
         namespace={namespace}
         cluster={cluster}
         lastUpdated={lastUpdated}
-        /* hasWarning={warningCount > 0}
-        warningCount={warningCount} */
+      /* hasWarning={warningCount > 0}
+      warningCount={warningCount} */
       />
       <MetricCards values={metricValues} />
       <Charts
