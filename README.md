@@ -1,6 +1,6 @@
-## 1. MRI Setup
+# 1. MRI Setup
 
-### 1.1 Installation
+## 1.1 Installation
 
 For Windows OS - Command Prompt
 
@@ -24,7 +24,7 @@ Download [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-
 
 Download [Node.js](https://nodejs.org/en/download) (.msi).
 
-### 1.2 Start Minikube
+## 1.2 Start Minikube
 
 Launch Docker Desktop.
 
@@ -43,7 +43,7 @@ minikube config set cpus 2
 
 `kubectl get nodes`
 
-### 1.3 Deploy to Kubernetes
+## 1.3 Deploy to Kubernetes
 
 #### 1.3.1 Build Docker Images
 
@@ -63,7 +63,7 @@ kubectl apply -f k8s/
 
 `kubectl get pods`
 
-### 1.4 Prometheus
+## 1.4 Prometheus
 
 #### 1.4.1 Add the Prometheus Helm chart
 
@@ -80,13 +80,13 @@ helm install prometheus prometheus-community/prometheus --set alertmanager.enabl
 
 `kubectl get pods -l app.kubernetes.io/name=prometheus`
 
-### 1.4.3 Port Forwarding
+## 1.4.3 Port Forwarding
 
 Inside the cluster, prometheus uses a static port. However, as the mri-console is outisde the cluster it has no way in. We could use NodePort but is gives a different port each time. Better to stay at ClusterIP, but set up port-forwarding.
 
 `kubectl port-forward svc/prometheus-server 9090:80`
 
-### 1.4.4 (optional) Value Scraping Params
+## 1.4.4 (optional) Value Scraping Params
 
 Even though the values are updated every 5s, prometheus only collects them every 30s by default.
 This causes the MRI console to also only get a new value every 30s.
@@ -94,13 +94,13 @@ To change this run following upgrade. The prometheus pod will restart automatica
 
 `helm upgrade prometheus prometheus-community/prometheus -f services/prometheus-values.yaml`
 
-### 1.5 Quick Restart
+## 1.5 Quick Restart
 
 Launch Docker Desktop.
 
 `minikube start`
 
-### 1.6 Service Update
+## 1.6 Service Update
 
 Here you see an example of how to reload the database service after you made a change.
 
@@ -112,3 +112,10 @@ kubectl set image deployment/db-service db-service=db-service:v2
 You can watch the pods live using:
 
 `kubectl get pods -w`
+
+# 2. Developer Console Setup
+
+```
+npm install
+npm run dev
+```
