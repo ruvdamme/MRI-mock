@@ -107,3 +107,17 @@ To change this run following upgrade. The prometheus pod will restart automatica
 Launch Docker Desktop.
 
 `minikube start`
+
+### 1.6 Service Update
+
+Here you see an example of how to reload the database service after you made a change.
+
+```
+cd services/db-service && docker build -t db-service:latest . && cd ../..
+minikube image load db-service:latest
+kubectl rollout restart deployment/db-service
+```
+
+You can watch the pods live using:
+
+`kubectl get pods -w`

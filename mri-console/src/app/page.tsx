@@ -1,9 +1,5 @@
-import { MetricCards } from '@/components/MetricCards'
+import { Dashboard } from '@/components/Dashboard'
 
-export default async function Dashboard() {
-  return (
-    <main>
-      <MetricCards />
-    </main>
-  )
+export default function Page() {
+  return <Dashboard />
 }

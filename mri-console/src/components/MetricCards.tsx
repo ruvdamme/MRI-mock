@@ -1,111 +1,79 @@
 'use client'
-import { useState, useCallback, useEffect } from 'react'
-import { useInterval } from '@/hooks/useInterval'
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Users, Zap, Clock, AlertTriangle } from 'lucide-react'
 
 type MetricConfig = {
-    label: string
-    query: string
-    unit?: string
-    decimals?: number
-    warnAbove?: number
+  query: string
+  icon: React.ReactNode
+  label: string
+  unit: string
+  decimals: number
 }
 
-const METRICS: MetricConfig[] = [
-    {
-        label: 'Active sessions',
-        query: 'auth_active_sessions',
-        decimals: 0,
-    },
-    {
-        label: 'API throughput',
-        query: 'round(sum(rate(api_requests_total[5m])), 0.1)',
-        unit: ' req/s',
-        decimals: 1,
-    },
-    {
-        label: 'p95 latency',
-        query:
-            'round(histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m])) * 1000, 1)',
-        unit: ' ms',
-        decimals: 0,
-        warnAbove: 500,
-    },
-    {
-        label: 'Error rate',
-        query:
-            'round(sum(rate(api_requests_total{status_code="500"}[5m])) / sum(rate(api_requests_total[5m])) * 100, 0.1)',
-        unit: '%',
-        decimals: 1,
-        warnAbove: 5,
-    },
+export const METRICS: MetricConfig[] = [
+  {
+    query: 'auth_active_sessions',
+    icon: <Users className="size-4" />,
+    label: 'active sessions',
+    unit: '',
+    decimals: 0,
+  },
+  {
+    query: 'round(sum(rate(api_requests_total[5m])), 0.1)',
+    icon: <Zap className="size-4" />,
+    label: 'api throughput',
+    unit: ' req/s',
+    decimals: 0,
+  },
+  {
+    query: 'round(histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m])) * 1000, 1)',
+    icon: <Clock className="size-4" />,
+    label: 'p95 latency',
+    unit: ' ms',
+    decimals: 0,
+  },
+  {
+    query: 'round(sum(rate(api_requests_total{status_code="500"}[5m])) / sum(rate(api_requests_total[5m])) * 100, 0.1)',
+    icon: <AlertTriangle className="size-4" />,
+    label: 'error rate',
+    unit: '%',
+    decimals: 1,
+  },
 ]
 
+interface MetricCardsProps {
+  values: (number | null)[]
+}
 
-export function MetricCards() {
-    const [values, setValues] = useState<(number | null)[]>(METRICS.map(() => null))
+export function MetricCards({ values }: MetricCardsProps) {
+  return (
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 px-6">
+      {METRICS.map((metric, i) => {
+        const val = values[i]
+        const formatted =
+          val === null
+            ? '—'
+            : `${val.toFixed(metric.decimals ?? 0)}${metric.unit ?? ''}`
 
-    const fetchAll = useCallback(async () => {
-        const results = await Promise.all(
-            METRICS.map(async (m) => {
-                try {
-                    const res = await fetch(`/api/metrics?q=${encodeURIComponent(m.query)}`)
-                    const data = await res.json()
-                    return data.value ?? null
-                } catch {
-                    return null
-                }
-            })
+        return (
+          <Card key={metric.label}>
+            <CardHeader className="pb-1">
+              <CardTitle className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+                {metric.icon}
+                {metric.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-1">
+              <p className="text-4xl font-bold tabular-nums tracking-tight">
+                {formatted}
+              </p>
+              {val === null ? (
+                <p className="mt-1 text-xs text-muted-foreground">loading…</p>
+              ) : <p></p>}
+            </CardContent>
+          </Card>
         )
-        setValues(results)
-    }, [])
-
-    useEffect(() => {fetchAll()}, [fetchAll])
-
-    useInterval(fetchAll, 5000)
-
-    return (
-        <div className="p-6">
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {METRICS.map((metric, i) => {
-                    const val = values[i]
-                    const warn = metric.warnAbove !== undefined && val !== null && val > metric.warnAbove
-                    const formatted =
-                        val === null
-                            ? '—'
-                            : `${val.toFixed(metric.decimals ?? 0)}${metric.unit ?? ''}`
-
-                    return (
-                        <Card key={metric.label}>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    {metric.label}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-3xl font-semibold tabular-nums">
-                                    {formatted}
-                                </p>
-                                <div className="mt-3">
-                                    {val === null ? (
-                                        <Badge variant="outline">Loading…</Badge>
-                                    ) : (
-                                        <Badge variant={warn ? 'destructive' : 'secondary'}>
-                                            {warn ? '↑ Above threshold' : '↑ Normal'}
-                                        </Badge>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )
-                })}
-            </div>
-        </div>
-    )
+      })}
+    </div>
+  )
 }
