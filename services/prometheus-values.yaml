@@ -1,0 +1,6 @@
+server:
+  global:
+    scrape_interval: 5s
+    scrape_timeout: 4s
+alertmanager:
+  enabled: false

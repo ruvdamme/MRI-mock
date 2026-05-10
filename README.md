@@ -33,7 +33,7 @@ minikube start --driver=docker --memory=4096 --cpus=2
 minikube addons enable metrics-server
 ```
 
-If you want to persist the minikube config so you can just type `minikube start` (see 1.5 Quick Restart):
+(Optional) if you want to persist the minikube config so you can just type `minikube start` (see 1.5 Quick Restart):
 
 ```
 minikube config set driver docker
@@ -83,12 +83,24 @@ helm repo update
 #### 1.4.2 Install Prometheus into Minikube
 
 ```
-helm install prometheus prometheus-community/prometheus --set server.service.type=NodePort --set alertmanager.enabled=false
+helm install prometheus prometheus-community/prometheus --set alertmanager.enabled=false
 ```
 
 `kubectl get pods -l app.kubernetes.io/name=prometheus`
 
-`minikube service prometheus-server --url`
+### 1.4.3 Port Forwarding
+
+Inside the cluster, prometheus uses a static port. However, as the mri-console is outisde the cluster it has no way in. We could use NodePort but is gives a different port each time. Better to stay at ClusterIP, but set up port-forwarding.
+
+`kubectl port-forward svc/prometheus-server 9090:80`
+
+### 1.4.4 (optional) Value Scraping Params
+
+Even though the values are updated every 5s, prometheus only collects them every 30s by default.
+This causes the MRI console to also only get a new value every 30s.
+To change this run following upgrade. The prometheus pod will restart automatically.
+
+`helm upgrade prometheus prometheus-community/prometheus -f services/prometheus-values.yaml`
 
 ### 1.5 Quick Restart
 
